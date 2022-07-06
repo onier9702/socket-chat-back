@@ -7,8 +7,8 @@ class Users {
 
     }
 
-    addPerson(id, name, sala) {
-        let person = { id, name, sala };
+    addPerson(id, nombre, sala) {
+        let person = { id, nombre, sala };
 
         this.people.push(person);
         return this.people;

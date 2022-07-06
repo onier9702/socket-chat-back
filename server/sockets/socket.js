@@ -11,7 +11,7 @@ io.on('connection', (client) => {
 
     client.on('enter-chat', (user, callback) => {
 
-        if ( !user.name || !user.sala ) {
+        if ( !user.nombre || !user.sala ) {
             return callback({
                 error: true,
                 msg: 'Name/sala is necessary'
@@ -20,21 +20,24 @@ io.on('connection', (client) => {
 
         client.join(user.sala);
 
-        users.addPerson( client.id , user.name, user.sala );
+        users.addPerson( client.id , user.nombre, user.sala );
 
         client.broadcast.to(user.sala).emit('list-persons', users.getPersonsForRoom(user.sala) );
+        client.broadcast.to(user.sala).emit('create-message',   createMesage('Admin',`${user.nombre} joined `));
 
         callback( users.getPersonsForRoom(user.sala));
 
     });
 
-    client.on('create-message', (data) => {
+    client.on('create-message', (data, callback) => {
 
         let person = users.getPerson(client.id);
 
-        let msg = createMesage(person.name, data.message);
+        let msg = createMesage(person.nombre, data.message);
 
         client.broadcast.to(person.sala).emit('create-message', msg);
+
+        callback(msg);
 
     });
 
@@ -43,7 +46,7 @@ io.on('connection', (client) => {
 
         let person = users.getPerson(client.id);
 
-        client.broadcast.to(data.to).emit('private-message', createMesage(person.name, data.message));
+        client.broadcast.to(data.to).emit('private-message', createMesage(person.nombre, data.message));
     });
 
     client.on('disconnect', () => {
@@ -51,7 +54,7 @@ io.on('connection', (client) => {
         const removedPerson = users.removePerson(client.id);
         // return removedPerson;
 
-        client.broadcast.to(removedPerson.sala).emit('create-message',   createMesage('Admin',`${removedPerson.name} leave `));
+        client.broadcast.to(removedPerson.sala).emit('create-message',   createMesage('Admin',`${removedPerson.nombre} leave `));
         client.broadcast.to(removedPerson.sala).emit('list-persons', users.getPersonsForRoom(removedPerson.sala) );
 
     });
